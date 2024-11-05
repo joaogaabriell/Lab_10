@@ -1,3 +1,5 @@
+package Main;
+
 import controller.ControleOnibus;
 import model.Onibus;
 import view.PainelCentral;

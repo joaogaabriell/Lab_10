@@ -5,15 +5,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class OnibusTest {
 
     private Onibus onibus;
+    private TesteAssentoListener listener;
 
     @BeforeEach
     void setUp() {
         onibus = new Onibus(10); // Inicializa um ônibus com 10 assentos
+        listener = new TesteAssentoListener();
+        onibus.adicionarListener(listener);
     }
 
     @Test
@@ -25,36 +27,66 @@ class OnibusTest {
     }
 
     @Test
-    void testAdicionarRemoverListener() {
-        AssentoListener listenerMock = mock(AssentoListener.class);
+    void testAtualizarAssentoComNotificacao() {
+        int numeroAssento = 2;
+        String status = "Reservado";
 
+        // Atualiza o status de um assento
+        onibus.atualizarAssento(numeroAssento, status);
 
-        onibus.adicionarListener(listenerMock);
-        onibus.atualizarAssento(0, "Reservado");
-
-
-        verify(listenerMock, times(1)).assentoAtualizado(any(AssentoEvent.class));
-
-
-        onibus.removerListener(listenerMock);
-        onibus.atualizarAssento(1, "Indisponível");
-
-        // Verifica que o listener não foi notificado após a remoção
-        verify(listenerMock, times(1)).assentoAtualizado(any(AssentoEvent.class));
+        // Verifica se o listener foi notificado com o número de assento e o status corretos
+        assertEquals(numeroAssento, listener.ultimoEvento.getNumeroAssento());
+        assertEquals(status, listener.ultimoEvento.getStatus());
     }
 
     @Test
-    void testAtualizarAssentoComNotificacao() {
-        AssentoListener listenerMock = mock(AssentoListener.class);
-        onibus.adicionarListener(listenerMock);
+    void testAdicionarRemoverListener() {
+        // Atualiza um assento e verifica se o listener foi notificado
+        onibus.atualizarAssento(0, "Reservado");
+        assertNotNull(listener.ultimoEvento, "Listener deveria ter sido notificado");
 
-        int numeroAssento = 2;
-        String status = "Reservado";
+        // Remove o listener e atualiza outro assento
+        onibus.removerListener(listener);
+        listener.ultimoEvento = null;
+        onibus.atualizarAssento(1, "Indisponível");
+
+        // Verifica que o listener não foi notificado após a remoção
+        assertNull(listener.ultimoEvento, "Listener não deveria ter sido notificado após a remoção");
+    }
+
+    @Test
+    void testAtualizarAssentoForaDosLimites() {
+        int numeroAssento = 15; // Fora dos limites para um ônibus com 10 assentos
+
+        Exception exception = assertThrows(IndexOutOfBoundsException.class, () -> {
+            onibus.atualizarAssento(numeroAssento, "Reservado");
+        });
+
+        String mensagemEsperada = "Index: " + numeroAssento + ", Size: 10";
+        String mensagemAtual = exception.getMessage();
+
+        assertTrue(mensagemAtual.contains(mensagemEsperada),
+                "A exceção deveria indicar que o número do assento está fora dos limites");
+    }
+
+    @Test
+    void testAtualizarAssentoStatus() {
+        int numeroAssento = 3;
+        String status = "Indisponível";
+
+        // Atualiza o status do assento e verifica
         onibus.atualizarAssento(numeroAssento, status);
+        assertEquals(status, onibus.getStatusAssento(numeroAssento),
+                "O status do assento deve ser atualizado corretamente");
+    }
 
+    // Classe auxiliar que implementa AssentoListener para registrar o último evento recebido
+    private static class TesteAssentoListener implements AssentoListener {
+        AssentoEvent ultimoEvento;
 
-        verify(listenerMock).assentoAtualizado(argThat(event ->
-                event.getNumeroAssento() == numeroAssento && event.getStatus().equals(status)
-        ));
+        @Override
+        public void assentoAtualizado(AssentoEvent event) {
+            this.ultimoEvento = event;
+        }
     }
 }
