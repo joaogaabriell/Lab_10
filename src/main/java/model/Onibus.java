@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Onibus {
-    private List<String> assentos;
-    private List<AssentoListener> listeners;
+    private final List<String> assentos;
+    private final List<AssentoListener> listeners;
 
     public Onibus(int numeroDeAssentos) {
         assentos = new ArrayList<>(numeroDeAssentos);
@@ -41,8 +41,7 @@ public class Onibus {
         return assentos.get(numero);
     }
 
-    // Método adicionado
     public int getNumeroDeAssentos() {
-        return assentos.size(); // Retorna o número total de assentos
+        return assentos.size();
     }
 }
