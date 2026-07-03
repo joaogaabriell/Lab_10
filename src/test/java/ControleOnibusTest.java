@@ -50,13 +50,27 @@ class ControleOnibusTest {
 
     @Test
     void testNotificarListeners() {
-        int numeroAssento = 2;
-        controleOnibus.reservarAssento(numeroAssento);
+        ContadorListener contador = new ContadorListener();
+        onibus.adicionarListener(contador);
 
-        // Simula a notificação e verifica se o evento de atualização foi registrado
-        AssentoEvent event = new AssentoEvent(onibus, numeroAssento, "Reservado");
-        assertEquals(2, onibus.getStatusAssento(numeroAssento).equals("Reservado") ? 2 : 0,
-                "Deveria haver 2 listeners notificados");
+        controleOnibus.reservarAssento(2);
+        controleOnibus.comprarAssento(2);
+
+        assertEquals(2, contador.notificacoes,
+                "O listener deveria ter sido notificado uma vez por atualização");
+        assertEquals("Indisponível", contador.ultimoStatus,
+                "O último evento deveria refletir a compra do assento");
+    }
+
+    private static class ContadorListener implements model.AssentoListener {
+        int notificacoes;
+        String ultimoStatus;
+
+        @Override
+        public void assentoAtualizado(AssentoEvent event) {
+            notificacoes++;
+            ultimoStatus = event.getStatus();
+        }
     }
 
     @Test

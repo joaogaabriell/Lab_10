@@ -3,7 +3,7 @@ package controller;
 import model.Onibus;
 
 public class ControleOnibus {
-    private Onibus onibus;
+    private final Onibus onibus;
 
     public ControleOnibus(Onibus onibus) {
         this.onibus = onibus;

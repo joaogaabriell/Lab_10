@@ -3,8 +3,8 @@ package model;
 import java.util.EventObject;
 
 public class AssentoEvent extends EventObject {
-    private int numeroAssento;
-    private String status;
+    private final int numeroAssento;
+    private final String status;
 
     public AssentoEvent(Object source, int numeroAssento, String status) {
         super(source);
